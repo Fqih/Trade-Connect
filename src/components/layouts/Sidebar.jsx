@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { LayoutDashboard, Package, FileText, FileBarChart, MessageSquareText, ThumbsUp } from 'lucide-react'
-import logo from '../../assets/images/logo.svg'
+import logo from '../../assets/images/logo.png'
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const location = useLocation()

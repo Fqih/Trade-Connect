@@ -4,7 +4,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { Input } from '../../components/ui/Input'
 import { Button } from '../../components/ui/Button'
 import { Eye, EyeOff } from 'lucide-react'
-import logo from '../../assets/images/logo.svg'
+import logo from '../../assets/images/logo.png'
 
 const Login = () => {
   const [formData, setFormData] = useState({

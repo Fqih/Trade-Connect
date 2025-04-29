@@ -1,4 +1,3 @@
-// src/components/layout/Sidebar.jsx
 import { Link, useLocation } from 'react-router-dom'
 import { LayoutDashboard, Package, FileText, FileBarChart, MessageSquareText, ThumbsUp } from 'lucide-react'
 import logo from '../../assets/images/logo.svg'

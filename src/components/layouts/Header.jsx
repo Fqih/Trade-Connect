@@ -1,4 +1,3 @@
-// src/components/layout/Header.jsx
 import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { Menu, Bell, User, LogOut, ChevronDown } from 'lucide-react'

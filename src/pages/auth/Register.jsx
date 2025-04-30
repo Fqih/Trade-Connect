@@ -1,3 +1,4 @@
+// src/pages/auth/Register.jsx
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
@@ -303,7 +304,7 @@ const Register = () => {
             />
           </div>
           
-          <Button type="submit" variant="danger" fullWidth className="text-xl py-4">
+          <Button type="submit" variant="danger" fullWidth className="py-4">
             Create My Account
           </Button>
         </form>

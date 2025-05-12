@@ -27,7 +27,13 @@ const RegisterForm = () => {
       // Exclude confirmPassword and format data for API
       const { confirmPassword, ...userData } = values;
       await register(userData);
+      
+      // Set token in localStorage untuk simulasi autentikasi
+      localStorage.setItem('token', 'sample-token-after-registration');
+      
       toast.success('Registration successful');
+      
+      // Redirect ke dashboard langsung
       navigate('/dashboard');
     } catch (error) {
       setRegisterError(error.message || 'Registration failed. Please try again.');
@@ -168,3 +174,5 @@ const RegisterForm = () => {
     </div>
   );
 };
+
+export default RegisterForm;

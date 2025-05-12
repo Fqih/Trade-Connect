@@ -1,0 +1,9 @@
+Flask==2.3.2
+Flask_Cors==5.0.0
+protobuf==3.20.3
+google-generativeai==0.8.5
+google-ai-generativelanguage==0.6.15
+gunicorn==20.1.0
+google-cloud==0.34.0
+
+

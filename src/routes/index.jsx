@@ -1,5 +1,5 @@
+// routes/index.jsx
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
 
 // Auth Pages
 import Login from "../pages/auth/Login";
@@ -16,28 +16,41 @@ import Recommendation from "../pages/Recommendation";
 // Layout
 import MainLayout from "../components/layout/MainLayout";
 
+// Protected wrapper
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated } = useAuth();
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" />;
+  const token = localStorage.getItem("token");
+  if (!token) {
+    return <Navigate to="/login" replace />;
   }
-
   return <MainLayout>{children}</MainLayout>;
 };
 
+// Public wrapper
+const PublicRoute = ({ children }) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    return <Navigate to="/" replace />;
+  }
+  return children;
+};
+
 const routes = [
-  // Auth Routes
   {
     path: "/login",
-    element: <Login />,
+    element: (
+      <PublicRoute>
+        <Login />
+      </PublicRoute>
+    ),
   },
   {
     path: "/register",
-    element: <Register />,
+    element: (
+      <PublicRoute>
+        <Register />
+      </PublicRoute>
+    ),
   },
-
-  // Protected Routes
   {
     path: "/",
     element: (
@@ -86,11 +99,9 @@ const routes = [
       </ProtectedRoute>
     ),
   },
-
-  // Fallback Route
   {
     path: "*",
-    element: <Navigate to="/" />,
+    element: <Navigate to="/" replace />,
   },
 ];
 

@@ -16,22 +16,11 @@ const RecommendationCard = ({ data }) => {
           {data.matchRate}% Match
         </div>
       </div>
-      
       <div className="space-y-2 mb-4">
-        <div className="flex items-center">
-          <div className="w-4 h-4 rounded-full bg-green-500 mr-2"></div>
-          <p className="text-sm text-gray-600">Location: {data.location}</p>
-        </div>
-        <div className="flex items-center">
-          <div className="w-4 h-4 rounded-full bg-blue-500 mr-2"></div>
-          <p className="text-sm text-gray-600">Products: {data.products}</p>
-        </div>
-        <div className="flex items-center">
-          <div className="w-4 h-4 rounded-full bg-purple-500 mr-2"></div>
-          <p className="text-sm text-gray-600">Annual Revenue: {data.revenue}</p>
-        </div>
+        <p className="text-sm text-gray-600">📍 {data.location}</p>
+        <p className="text-sm text-gray-600">🛒 {data.products}</p>
+        <p className="text-sm text-gray-600">💰 {data.revenue}</p>
       </div>
-      
       <div className="border-t border-gray-200 pt-4">
         <Button variant="primary" className="flex items-center justify-center">
           View Profile <ArrowRight size={16} className="ml-2" />
@@ -41,24 +30,23 @@ const RecommendationCard = ({ data }) => {
   );
 };
 
-const EmptyState = () => {
-  return (
-    <div className="flex flex-col items-center justify-center py-12 px-4">
-      <div className="bg-gray-100 p-4 rounded-full mb-4">
-        <ThumbsUp size={32} className="text-gray-400" />
-      </div>
-      <h3 className="text-lg font-medium text-gray-900 mb-2">No recommendations yet</h3>
-      <p className="text-center text-gray-500 max-w-md mb-6">
-        Complete your business profile to get personalized recommendations based on your preferences and needs.
-      </p>
-      <Button variant="primary">Complete Your Profile</Button>
+const EmptyState = () => (
+  <div className="flex flex-col items-center justify-center py-12 px-4">
+    <div className="bg-gray-100 p-4 rounded-full mb-4">
+      <ThumbsUp size={32} className="text-gray-400" />
     </div>
-  );
-};
+    <h3 className="text-lg font-medium text-gray-900 mb-2">No recommendations found</h3>
+    <p className="text-center text-gray-500 max-w-md mb-6">
+      Try adjusting your filters or complete your profile to see better matches.
+    </p>
+    <Button variant="primary">Complete Your Profile</Button>
+  </div>
+);
 
 const Recommendation = () => {
   const { user } = useAuth();
   const [recommendations, setRecommendations] = useState([]);
+  const [filteredRecommendations, setFilteredRecommendations] = useState([]);
   const [filters, setFilters] = useState({
     industry: '',
     location: '',
@@ -66,72 +54,108 @@ const Recommendation = () => {
   });
   const [loading, setLoading] = useState(true);
 
-  // Mock data - Replace with actual API call
-  useEffect(() => {
-    // Simulate API request
-    const fetchRecommendations = async () => {
-      try {
-        setLoading(true);
-        // In a real app, you would fetch data from an API
-        // const response = await api.get('/recommendations');
-        // setRecommendations(response.data);
-        
-        // Mock data
-        setTimeout(() => {
-          const mockData = [
-            {
-              id: 1,
-              name: 'PT Global Seafood',
-              company: 'Seafood Supplier',
-              matchRate: 95,
-              location: 'Jakarta, Indonesia',
-              products: 'Fish, Shrimp, Crab',
-              revenue: '$1M - $5M'
-            },
-            {
-              id: 2,
-              name: 'Organic Farm Co.',
-              company: 'Agricultural Products',
-              matchRate: 87,
-              location: 'Bandung, Indonesia',
-              products: 'Vegetables, Fruits, Grains',
-              revenue: '$500K - $1M'
-            },
-            {
-              id: 3,
-              name: 'Tech Solutions Inc.',
-              company: 'Technology Provider',
-              matchRate: 82,
-              location: 'Surabaya, Indonesia',
-              products: 'Software, Hardware, Services',
-              revenue: '$5M - $10M'
-            }
-          ];
-          setRecommendations(mockData);
-          setLoading(false);
-        }, 1000);
-      } catch (error) {
-        console.error('Error fetching recommendations:', error);
-        setLoading(false);
-      }
-    };
+  const mockData = [
+    {
+      id: 1,
+      name: 'PT Global Seafood',
+      company: 'Seafood Supplier',
+      industry: 'seafood',
+      matchRate: 95,
+      location: 'Jakarta',
+      products: 'Fish, Shrimp, Crab',
+      revenue: '$1M - $5M'
+    },
+    {
+      id: 2,
+      name: 'Organic Farm Co.',
+      company: 'Agricultural Products',
+      industry: 'agriculture',
+      matchRate: 87,
+      location: 'Bandung',
+      products: 'Vegetables, Fruits, Grains',
+      revenue: '$500K - $1M'
+    },
+    {
+      id: 3,
+      name: 'Tech Solutions Inc.',
+      company: 'Technology Provider',
+      industry: 'technology',
+      matchRate: 82,
+      location: 'Surabaya',
+      products: 'Software, Hardware, Services',
+      revenue: '$5M - $10M'
+    },
+    {
+      id: 4,
+      name: 'Bali Coffee Export',
+      company: 'Coffee Supplier',
+      industry: 'agriculture',
+      matchRate: 78,
+      location: 'Bali',
+      products: 'Coffee Beans',
+      revenue: '$500K - $2M'
+    },
+    {
+      id: 5,
+      name: 'RetailPro',
+      company: 'Retail Solutions',
+      industry: 'retail',
+      matchRate: 91,
+      location: 'Jakarta',
+      products: 'POS, Software',
+      revenue: '$2M - $4M'
+    },
+    {
+      id: 6,
+      name: 'PT Fishindo Raya',
+      company: 'Seafood Distributor',
+      industry: 'seafood',
+      matchRate: 69,
+      location: 'Surabaya',
+      products: 'Fish, Squid, Lobster',
+      revenue: '$3M - $5M'
+    },
+    {
+      id: 7,
+      name: 'TeknoMakmur',
+      company: 'Tech Manufacturer',
+      industry: 'technology',
+      matchRate: 85,
+      location: 'Bandung',
+      products: 'IoT Devices',
+      revenue: '$1M - $3M'
+    }
+  ];
 
-    fetchRecommendations();
+  // Fetch & filter
+  useEffect(() => {
+    setLoading(true);
+    setTimeout(() => {
+      setRecommendations(mockData);
+      setLoading(false);
+    }, 1000);
   }, []);
+
+  useEffect(() => {
+    const filtered = recommendations.filter(item => {
+      const matchIndustry = filters.industry ? item.industry === filters.industry : true;
+      const matchLocation = filters.location ? item.location.toLowerCase() === filters.location : true;
+      const matchRate = filters.matchRate ? item.matchRate >= parseInt(filters.matchRate) : true;
+      return matchIndustry && matchLocation && matchRate;
+    });
+
+    setFilteredRecommendations(filtered);
+  }, [recommendations, filters]);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
-    setFilters({
-      ...filters,
-      [name]: value
-    });
+    setFilters(prev => ({ ...prev, [name]: value }));
   };
 
   const industryOptions = [
     { value: 'agriculture', label: 'Agriculture' },
     { value: 'seafood', label: 'Seafood' },
     { value: 'technology', label: 'Technology' },
-    { value: 'manufacturing', label: 'Manufacturing' },
     { value: 'retail', label: 'Retail' }
   ];
 
@@ -139,8 +163,7 @@ const Recommendation = () => {
     { value: 'jakarta', label: 'Jakarta' },
     { value: 'bandung', label: 'Bandung' },
     { value: 'surabaya', label: 'Surabaya' },
-    { value: 'bali', label: 'Bali' },
-    { value: 'yogyakarta', label: 'Yogyakarta' }
+    { value: 'bali', label: 'Bali' }
   ];
 
   const matchRateOptions = [
@@ -157,8 +180,8 @@ const Recommendation = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Recommendations</h1>
           <p className="text-gray-600">
-            {user?.accountType === 'supplier' 
-              ? 'Potential buyers who might be interested in your products' 
+            {user?.accountType === 'supplier'
+              ? 'Potential buyers who might be interested in your products'
               : 'Potential suppliers who match your needs'}
           </p>
         </div>
@@ -169,7 +192,7 @@ const Recommendation = () => {
           <Filter size={20} className="mr-2 text-gray-500" />
           <h2 className="text-lg font-medium">Filters</h2>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Dropdown
             label="Industry"
@@ -179,7 +202,7 @@ const Recommendation = () => {
             options={industryOptions}
             placeholder="All Industries"
           />
-          
+
           <Dropdown
             label="Location"
             name="location"
@@ -188,7 +211,7 @@ const Recommendation = () => {
             options={locationOptions}
             placeholder="All Locations"
           />
-          
+
           <Dropdown
             label="Match Rate"
             name="matchRate"
@@ -204,10 +227,10 @@ const Recommendation = () => {
         <div className="flex justify-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
-      ) : recommendations.length > 0 ? (
+      ) : filteredRecommendations.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {recommendations.map((recommendation) => (
-            <RecommendationCard key={recommendation.id} data={recommendation} />
+          {filteredRecommendations.map(item => (
+            <RecommendationCard key={item.id} data={item} />
           ))}
         </div>
       ) : (

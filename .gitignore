@@ -24,3 +24,4 @@ dist-ssr
 
 # Ignore backend folder
 backend/
+.gitignore

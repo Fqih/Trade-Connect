@@ -17,9 +17,9 @@ const RecommendationCard = ({ data }) => {
         </div>
       </div>
       <div className="space-y-2 mb-4">
-        <p className="text-sm text-gray-600">📍 {data.location}</p>
-        <p className="text-sm text-gray-600">🛒 {data.products}</p>
-        <p className="text-sm text-gray-600">💰 {data.revenue}</p>
+        <p className="text-sm text-gray-600">🔵 {data.location}</p>
+        <p className="text-sm text-gray-600">🟡 {data.products}</p>
+        <p className="text-sm text-gray-600">🔴 {data.revenue}</p>
       </div>
       <div className="border-t border-gray-200 pt-4">
         <Button variant="primary" className="flex items-center justify-center">

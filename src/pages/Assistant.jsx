@@ -16,8 +16,7 @@ const Assistant = () => {
   const [isTyping, setIsTyping] = useState(false)
   const messagesEndRef = useRef(null)
   const [expandedFaq, setExpandedFaq] = useState(null)
-  const [connectionStatus, setConnectionStatus] = useState('checking') // Changed to 'checking' instead of 'untested'
-  const [isTestingConnection, setIsTestingConnection] = useState(true) // Add state to track connection test
+  const [connectionStatus, setConnectionStatus] = useState('untested') 
 
   const faqItems = [
     {
@@ -43,60 +42,29 @@ const Assistant = () => {
   ]
 
   useEffect(() => {
-    let timeoutId;
-    
     const testBackendConnection = async () => {
       try {
-        setIsTestingConnection(true);
-        
-        console.log('Testing connection to backend API...');
-        
-        // Set a timeout for the API test
-        const timeoutPromise = new Promise((_, reject) => {
-          timeoutId = setTimeout(() => {
-            reject(new Error('Connection test timed out after 15 seconds'));
-          }, 15000); // 15 second timeout
-        });
-        
-        // Create the fetch request with credentials: 'omit' to avoid CORS preflight issues
-        const fetchPromise = fetch('https://backend-tradeconnect-production.up.railway.app/test', {
+        const response = await fetch('https://backend-tradeconnect-production.up.railway.app/test', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json'
-          },
-          mode: 'cors',
-          credentials: 'omit' // Important for CORS handling
+          }
         });
         
-        // Race between the fetch and the timeout
-        const response = await Promise.race([fetchPromise, timeoutPromise]);
-        console.log('Got response with status:', response.status);
-        
-        // Clear the timeout since we got a response
-        clearTimeout(timeoutId);
-        
         if (response.ok) {
-          const data = await response.json();
-          console.log('Successfully connected to backend API:', data);
+          console.log('Successfully connected to backend API');
           setConnectionStatus('connected');
         } else {
-          console.error('Backend connection test failed with status:', response.status);
+          console.error('Backend connection test failed');
           setConnectionStatus('error');
         }
       } catch (err) {
         console.error('Error testing backend connection:', err);
         setConnectionStatus('error');
-      } finally {
-        setIsTestingConnection(false);
       }
     };
     
     testBackendConnection();
-    
-    // Cleanup function to clear timeout if component unmounts
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-    };
   }, []);
 
   const scrollToBottom = () => {
@@ -127,24 +95,14 @@ const Assistant = () => {
       if (!newMessage) {
         throw new Error('Message is required');
       }
-      
-      // Set up timeout for the request
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-      
-      // Send message to backend API with timeout
+      // Send message to backend API
       const response = await fetch('https://backend-tradeconnect-production.up.railway.app/ask', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ message: newMessage }),
-        signal: controller.signal,
-        mode: 'cors',
-        credentials: 'omit' // Important for CORS handling
       });
-      
-      clearTimeout(timeoutId);
       
       console.log('Response status:', response.status);
       
@@ -167,11 +125,9 @@ const Assistant = () => {
     } catch (err) {
       console.error('Error fetching response:', err);
       
-      let errorMsg = 'Sorry, I encountered an error connecting to the backend. Please try again later.';
+      let errorMsg = 'Sorry, I encountered an error connecting to the backend. Please make sure the Flask server is running.';
       
-      if (err.name === 'AbortError') {
-        errorMsg = 'The request timed out. The backend might be processing a large number of requests or may be temporarily slow to respond.';
-      } else if (err.message.includes('status: 500')) {
+      if (err.message.includes('status: 500')) {
         errorMsg = 'The server encountered an internal error. This might be an issue with the Gemini API. Please check your API key and server logs.';
       } else if (err.message.includes('status: 400')) {
         errorMsg = 'The server could not process your request due to invalid data format.';
@@ -211,45 +167,6 @@ const Assistant = () => {
     return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   }
 
-  // Function to retry connection test
-  const retryConnection = () => {
-    setConnectionStatus('checking');
-    // Re-run the effect that tests the connection
-    const testBackendConnection = async () => {
-      try {
-        setIsTestingConnection(true);
-        console.log('Retrying connection to backend API...');
-        
-        const response = await fetch('https://backend-tradeconnect-production.up.railway.app/test', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          mode: 'cors',
-          credentials: 'omit'
-        });
-        
-        console.log('Retry response status:', response.status);
-        
-        if (response.ok) {
-          const data = await response.json();
-          console.log('Successfully connected to backend API:', data);
-          setConnectionStatus('connected');
-        } else {
-          console.error('Backend connection test failed with status:', response.status);
-          setConnectionStatus('error');
-        }
-      } catch (err) {
-        console.error('Error testing backend connection:', err);
-        setConnectionStatus('error');
-      } finally {
-        setIsTestingConnection(false);
-      }
-    };
-    
-    testBackendConnection();
-  };
-
   return (
     <div className="flex flex-col h-[calc(100vh-140px)]">
       <div className="flex justify-between items-center mb-4">
@@ -261,23 +178,10 @@ const Assistant = () => {
               API Connected
             </span>
           )}
-          {connectionStatus === 'checking' && (
-            <span className="text-sm px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full flex items-center">
-              <span className="w-2 h-2 bg-yellow-500 rounded-full mr-1 animate-ping"></span>
-              Checking Connection...
-            </span>
-          )}
           {connectionStatus === 'error' && (
             <span className="text-sm px-2 py-1 bg-red-100 text-red-800 rounded-full flex items-center">
               <span className="w-2 h-2 bg-red-500 rounded-full mr-1"></span>
               API Connection Error
-              <button 
-                onClick={retryConnection} 
-                className="ml-2 text-xs bg-red-200 hover:bg-red-300 px-1 py-0.5 rounded"
-                disabled={isTestingConnection}
-              >
-                Retry
-              </button>
             </span>
           )}
           <Button variant="secondary" className="flex items-center gap-2">
@@ -299,40 +203,21 @@ const Assistant = () => {
           </div>
           
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {connectionStatus === 'checking' && messages.length === 1 && (
-              <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 p-3 rounded-lg mb-4">
-                <p className="font-medium flex items-center">
-                  <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2 animate-pulse"></span>
-                  Connecting to backend...
-                </p>
-                <p className="text-sm mt-1">
-                  Testing connection to the Trade Connect backend service. This may take a moment.
-                </p>
-              </div>
-            )}
-            
             {connectionStatus === 'error' && messages.length === 1 && (
               <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg mb-4">
                 <p className="font-medium">Connection Error</p>
                 <p className="text-sm mt-1">
-                  Unable to connect to the backend API. The server might be slow to respond or temporarily unavailable.
+                  Unable to connect to the backend API. 
                 </p>
                 <p className="text-sm mt-2">
                   <strong>Troubleshooting:</strong> Check that:
                   <ul className="list-disc pl-5 mt-1">
-                    <li>Backend server is running and accessible</li>
-                    <li>Your network connection is stable</li>
-                    <li>The API endpoint is correct</li>
-                    <li>You can try using the chat anyway - some responses may work despite the connection test failing</li>
+                    <li>Flask server is running with <code>flask run</code> or <code>python app.py</code></li>
+                    <li>flask-cors is installed (<code>pip install flask-cors</code>)</li>
+                    <li>The server is configured with CORS support</li>
+                    <li>Check browser console for specific error messages</li>
                   </ul>
                 </p>
-                <button 
-                  onClick={retryConnection}
-                  className="mt-2 bg-red-100 hover:bg-red-200 text-red-800 px-3 py-1 rounded text-sm"
-                  disabled={isTestingConnection}
-                >
-                  {isTestingConnection ? 'Testing connection...' : 'Retry Connection'}
-                </button>
               </div>
             )}
             
@@ -391,7 +276,7 @@ const Assistant = () => {
                   className="w-full border border-gray-300 rounded-lg pl-3 pr-10 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none overflow-hidden"
                   rows={1}
                   style={{ minHeight: '42px', maxHeight: '120px' }}
-                  disabled={isTyping || (connectionStatus === 'checking' && isTestingConnection)}
+                  disabled={isTyping || connectionStatus === 'error'}
                 ></textarea>
                 <button className="absolute right-3 bottom-3 text-gray-400 hover:text-gray-600">
                   <PaperclipIcon size={18} />
@@ -400,18 +285,18 @@ const Assistant = () => {
               <button 
                 className="p-2 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200"
                 title="Voice input"
-                disabled={isTyping || (connectionStatus === 'checking' && isTestingConnection)}
+                disabled={isTyping || connectionStatus === 'error'}
               >
                 <Mic size={20} />
               </button>
               <button 
                 onClick={handleSendMessage}
                 className={`p-2 rounded-full ${
-                  isTyping || (connectionStatus === 'checking' && isTestingConnection)
+                  isTyping || connectionStatus === 'error'
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
                     : 'bg-blue-500 text-white hover:bg-blue-600'
                 }`}
-                disabled={isTyping || (connectionStatus === 'checking' && isTestingConnection)}
+                disabled={isTyping || connectionStatus === 'error'}
               >
                 <Send size={20} />
               </button>

@@ -9,7 +9,7 @@ import {
   X
 } from 'lucide-react'
 import logo from '../../assets/images/logo.png'
-import logo_small from '../../assets/images/logo-small.png'
+import logo_small from '../../assets/images/logo.png'
 import { useEffect } from 'react'
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
